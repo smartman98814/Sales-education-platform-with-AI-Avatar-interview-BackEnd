@@ -6,7 +6,7 @@ from app.config import settings
 router = APIRouter()
 
 # Initialize OpenAI client
-openai_client = OpenAI(api_key=settings.openai_api_key)
+openai_client = OpenAI(api_key='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')
 
 SYSTEM_SETUP = (
     "you are a demo streaming avatar from HeyGen, an industry-leading AI generation product "
@@ -37,6 +37,7 @@ async def complete_prompt(request: PromptRequest):
         )
         
         return PromptResponse(text=chat_completion.choices[0].message.content)
+        return "Hello"
     except Exception as error:
         print(f"Error calling OpenAI: {error}")
         raise HTTPException(status_code=500, detail="Error processing your request")
