@@ -20,7 +20,7 @@ else:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://saleseductaionplatformaiavatar.vercel.app",
+        "https://saleseductaionplatformaiavatar-kt1bofyby.vercel.app/",
         "http://localhost:5173",  # Keep for local development
     ],
     allow_credentials=True,
