@@ -37,7 +37,6 @@ async def complete_prompt(request: PromptRequest):
         )
         
         return PromptResponse(text=chat_completion.choices[0].message.content)
-        return "Hello"
     except Exception as error:
         print(f"Error calling OpenAI: {error}")
         raise HTTPException(status_code=500, detail="Error processing your request")
