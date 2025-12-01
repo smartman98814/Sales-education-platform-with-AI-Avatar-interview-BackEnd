@@ -6,7 +6,7 @@ from app.config import settings
 router = APIRouter()
 
 # Initialize OpenAI client
-openai_client = OpenAI(api_key="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")
+openai_client = OpenAI(api_key=settings.openai_api_key)
 
 SYSTEM_SETUP = (
     "you are a demo streaming avatar from HeyGen, an industry-leading AI generation product "
