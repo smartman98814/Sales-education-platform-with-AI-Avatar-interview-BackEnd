@@ -19,7 +19,7 @@ from app.services.user_service import (
     delete_user_account,
 )
 from app.core.auth import create_access_token, decode_access_token
-from app.models.user import User
+from app.models.user import User, UserCreate
 from app.database import get_db
 from app.utils.logger import get_logger
 
@@ -66,8 +66,15 @@ async def get_current_user(
 async def signup(request: SignUpRequest, db: Session = Depends(get_db)):
     """Sign up a new user"""
     try:
+        # Convert SignUpRequest to UserCreate
+        user_create = UserCreate(
+            email=request.email,
+            username=request.username,
+            password=request.password
+        )
+        
         # Create user
-        user = create_user(db, request)
+        user = create_user(db, user_create)
         
         # Create access token
         access_token = create_access_token(data={"sub": user.email})
