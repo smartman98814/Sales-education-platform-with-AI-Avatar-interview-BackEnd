@@ -16,12 +16,19 @@ class Settings(BaseSettings):
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         use_existing_assistants: Whether to use existing assistants from config (default: True)
         jwt_secret_key: Secret key for JWT token signing (default: development key)
+        livekit_url: LiveKit server URL (for token generation only)
+        livekit_api_key: LiveKit API key (for token generation only)
+        livekit_api_secret: LiveKit API secret (for token generation only)
     """
     openai_api_key: Optional[str] = None
     allowed_origins: Optional[str] = None
     log_level: str = "INFO"
     use_existing_assistants: bool = True
     jwt_secret_key: str = "your-secret-key-change-in-production-use-strong-random-key"
+    livekit_url: Optional[str] = None
+    livekit_api_key: Optional[str] = None
+    livekit_api_secret: Optional[str] = None
+    livekit_agent_name: Optional[str] = "Dakota-1e0"  # Default agent name
     
     class Config:
         env_file = ".env"

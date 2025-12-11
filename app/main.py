@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import agent_router, auth_router
+from app.routers import agent_router, auth_router, livekit_router
 from app.config import settings
 
 app = FastAPI(
-    title="AI Agents API",
-    description="Backend API with 10 unique AI agents sharing a knowledge base",
+    title="AI Avatar Interview API",
+    description="Backend API for AI avatar interviews with LiveKit integration",
     version="2.0.0"
 )
 
@@ -26,12 +26,12 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router.router, prefix="/api")
 app.include_router(agent_router.router, prefix="/api", tags=["agents"])
+app.include_router(livekit_router.router, prefix="/api", tags=["livekit"])
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database and agent manager on startup"""
+    """Initialize database on startup"""
     from app.database import init_db
-    from app.services import agent_manager
     from app.utils.logger import get_logger
     
     logger = get_logger(__name__)
@@ -43,24 +43,15 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to initialize database: {str(e)}")
     
-    # Initialize agent manager if OpenAI API key is configured
-    if not settings.openai_api_key:
-        logger.warning("OpenAI API key not configured. Use POST /api/agents/initialize after setting OPENAI_API_KEY.")
-        return
-    
-    try:
-        agent_manager.initialize()
-        logger.info("Agent manager initialized. Call POST /api/agents/initialize to create agents.")
-    except Exception as e:
-        logger.warning(f"Could not initialize agent manager: {str(e)}")
+    # Note: OpenAI agents are handled by LiveKit agents (separate process)
+    # LiveKit token generation is handled by /api/livekit/token endpoint
 
 @app.get("/")
 async def root():
     return {
-        "message": "AI Agents API",
+        "message": "AI Avatar Interview API",
         "version": "2.0.0",
-        "agents": 10,
-        "description": "10 unique AI agent personalities with shared knowledge base"
+        "description": "Backend API for AI avatar interviews with LiveKit token generation"
     }
 
 @app.get("/health")
