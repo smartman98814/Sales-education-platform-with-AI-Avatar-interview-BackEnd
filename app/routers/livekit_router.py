@@ -4,7 +4,7 @@ Frontend handles all LiveKit connections directly.
 """
 import time
 import json
-import jwt
+from jose import jwt
 import httpx
 from typing import Optional
 from fastapi import APIRouter, HTTPException
