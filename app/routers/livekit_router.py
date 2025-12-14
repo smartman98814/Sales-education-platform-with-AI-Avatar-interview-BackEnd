@@ -6,6 +6,7 @@ import time
 import json
 import jwt
 import httpx
+from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.config import settings
@@ -25,7 +26,8 @@ class CreateRoomTokenRequest(BaseModel):
     """Request to create a LiveKit room token"""
     room_name: str
     participant_name: str
-    agent_id: int = None
+    agent_id: Optional[int] = None
+    heygen_session_id: Optional[str] = None
 
 
 class CreateRoomTokenResponse(BaseModel):
@@ -82,7 +84,13 @@ async def create_room_token(request: CreateRoomTokenRequest):
         # This is the key fix - adding room configuration with agent name
         # Note: Must use "agentName" (camelCase) to match LiveKit protocol
         # The TypeScript SDK uses "roomConfig" (camelCase), so we use that too
-        agent_name = settings.livekit_agent_name or "Dakota-1e0"
+        agent_name = settings.livekit_agent_name
+        if not agent_name:
+            raise HTTPException(
+                status_code=503,
+                detail="LiveKit agent name not configured. Set LIVEKIT_AGENT_NAME in environment."
+            )
+        
         room_config = {
             "agents": [{"agentName": agent_name}]
         }
@@ -90,11 +98,19 @@ async def create_room_token(request: CreateRoomTokenRequest):
         claims["roomConfig"] = room_config
         
         # Add agent metadata if provided
+        metadata_dict = {}
         if request.agent_id:
-            claims["metadata"] = f'{{"agent_id": {request.agent_id}}}'
+            metadata_dict["agent_id"] = request.agent_id
+        if request.heygen_session_id:
+            metadata_dict["heygen_session_id"] = request.heygen_session_id
+        
+        if metadata_dict:
+            claims["metadata"] = json.dumps(metadata_dict)
         
         # Log the claims structure for debugging
         logger.info(f"Token claims include roomConfig: {room_config}")
+        if request.heygen_session_id:
+            logger.info(f"HeyGen session_id included in participant metadata: {request.heygen_session_id}")
         
         # Generate JWT token using PyJWT
         token = jwt.encode(claims, settings.livekit_api_secret, algorithm="HS256")

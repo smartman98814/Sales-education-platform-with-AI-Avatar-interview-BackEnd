@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     livekit_url: Optional[str] = None
     livekit_api_key: Optional[str] = None
     livekit_api_secret: Optional[str] = None
-    livekit_agent_name: Optional[str] = "Dakota-1e0"  # Default agent name
+    livekit_agent_name: Optional[str] = None
     
     class Config:
         env_file = ".env"
