@@ -37,6 +37,12 @@ class CreateRoomTokenResponse(BaseModel):
     room_name: str
 
 
+class DeleteRoomResponse(BaseModel):
+    """Response from room deletion"""
+    success: bool
+    message: str
+
+
 @router.post(
     "/livekit/token",
     response_model=CreateRoomTokenResponse,
@@ -128,4 +134,97 @@ async def create_room_token(request: CreateRoomTokenRequest):
         raise HTTPException(status_code=500, detail=f"Failed to create token: {str(e)}")
 
 
+@router.delete(
+    "/livekit/room/{room_name}",
+    response_model=DeleteRoomResponse,
+    summary="Delete LiveKit room"
+)
+async def delete_room(room_name: str):
+    """
+    Delete a LiveKit room via the REST API.
+    This closes the room immediately and disconnects all participants including agents.
+    """
+    if not settings.livekit_url:
+        raise HTTPException(
+            status_code=503,
+            detail="LiveKit URL not configured. Set LIVEKIT_URL in environment."
+        )
+    
+    if not settings.livekit_api_key or not settings.livekit_api_secret:
+        raise HTTPException(
+            status_code=503,
+            detail="LiveKit API credentials not configured. Set LIVEKIT_API_KEY and LIVEKIT_API_SECRET."
+        )
+    
+    try:
+        # Generate JWT token for API authentication
+        now = int(time.time())
+        exp = now + 60  # Token expires in 1 minute (short-lived for API calls)
+        
+        api_claims = {
+            "iss": settings.livekit_api_key,
+            "nbf": now,
+            "exp": exp,
+            "sub": "api",
+            "video": {
+                "room": "",
+                "roomCreate": True,
+                "roomJoin": True,
+                "roomList": True,
+                "roomRecord": True,
+                "roomAdmin": True,  # Required for deleting rooms
+                "canPublish": True,
+                "canSubscribe": True,
+                "canPublishData": True,
+            }
+        }
+        
+        api_token = jwt.encode(api_claims, settings.livekit_api_secret, algorithm="HS256")
+        
+        # Extract base URL from LiveKit URL (remove wss:// or ws://)
+        base_url = settings.livekit_url.replace("wss://", "https://").replace("ws://", "http://")
+        
+        # LiveKit REST API endpoint for deleting rooms
+        api_url = f"{base_url}/twirp/livekit.RoomService/DeleteRoom"
+        
+        # Make DELETE request to LiveKit API
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                api_url,
+                headers={
+                    "Authorization": f"Bearer {api_token}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "room": room_name
+                }
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"Successfully deleted LiveKit room: {room_name}")
+                return DeleteRoomResponse(
+                    success=True,
+                    message=f"Room '{room_name}' deleted successfully"
+                )
+            elif response.status_code == 404:
+                # Room doesn't exist - not necessarily an error
+                logger.info(f"Room '{room_name}' not found (may have already been deleted)")
+                return DeleteRoomResponse(
+                    success=True,
+                    message=f"Room '{room_name}' not found or already deleted"
+                )
+            else:
+                error_text = response.text
+                logger.error(f"Failed to delete room '{room_name}': HTTP {response.status_code} - {error_text}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to delete room: {error_text}"
+                )
+                
+    except httpx.TimeoutException:
+        logger.error(f"Timeout while deleting room '{room_name}'")
+        raise HTTPException(status_code=504, detail="Timeout while deleting room")
+    except Exception as e:
+        logger.error(f"Error deleting LiveKit room '{room_name}': {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete room: {str(e)}")
 

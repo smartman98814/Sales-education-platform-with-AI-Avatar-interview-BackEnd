@@ -25,6 +25,7 @@ class UserLogin(BaseModel):
 class User(UserBase):
     """User model"""
     id: Optional[int] = None
+    role: Optional[str] = "user"
     created_at: Optional[str] = None  # Stored as ISO format string
     
     class Config:

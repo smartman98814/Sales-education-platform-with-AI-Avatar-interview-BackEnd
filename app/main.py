@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import agent_router, auth_router, livekit_router
+from app.routers import agent_router, auth_router, livekit_router, interview_router, conversation_router, admin_router
 from app.config import settings
 
 app = FastAPI(
@@ -27,6 +27,9 @@ app.add_middleware(
 app.include_router(auth_router.router, prefix="/api")
 app.include_router(agent_router.router, prefix="/api", tags=["agents"])
 app.include_router(livekit_router.router, prefix="/api", tags=["livekit"])
+app.include_router(interview_router.router, prefix="/api", tags=["interviews"])
+app.include_router(conversation_router.router, prefix="/api", tags=["conversations"])
+app.include_router(admin_router.router, prefix="/api", tags=["admin"])
 
 @app.on_event("startup")
 async def startup_event():

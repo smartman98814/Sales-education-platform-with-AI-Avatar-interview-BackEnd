@@ -20,6 +20,7 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
             id=db_user.id,
             email=db_user.email,
             username=db_user.username,
+            role=db_user.role or "user",
             created_at=db_user.created_at.isoformat() if db_user.created_at else None
         )
     return None
@@ -33,6 +34,7 @@ def get_user_by_username(db: Session, username: str) -> Optional[User]:
             id=db_user.id,
             email=db_user.email,
             username=db_user.username,
+            role=db_user.role or "user",
             created_at=db_user.created_at.isoformat() if db_user.created_at else None
         )
     return None
@@ -69,6 +71,7 @@ def create_user(db: Session, user_create: UserCreate) -> User:
             id=db_user.id,
             email=db_user.email,
             username=db_user.username,
+            role=db_user.role or "user",
             created_at=db_user.created_at.isoformat() if db_user.created_at else None
         )
     except ValueError:
@@ -95,6 +98,7 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
         id=db_user.id,
         email=db_user.email,
         username=db_user.username,
+        role=db_user.role or "user",
         created_at=db_user.created_at.isoformat() if db_user.created_at else None
     )
 
@@ -131,6 +135,7 @@ def update_user_profile(
         id=db_user.id,
         email=db_user.email,
         username=db_user.username,
+        role=db_user.role or "user",
         created_at=db_user.created_at.isoformat() if db_user.created_at else None
     )
 

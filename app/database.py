@@ -34,5 +34,7 @@ def get_db():
 
 def init_db():
     """Initialize database - create all tables"""
+    # Import all models to ensure they're registered
+    from app.models import db_user, conversation
     Base.metadata.create_all(bind=engine)
 

@@ -128,6 +128,7 @@ async def signin(request: SignInRequest, db: Session = Depends(get_db)):
             "id": user.id,
             "email": user.email,
             "username": user.username,
+            "role": user.role or "user",
             "created_at": user.created_at
         }
     )
@@ -140,6 +141,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "id": current_user.id,
         "email": current_user.email,
         "username": current_user.username,
+        "role": current_user.role or "user",
         "created_at": current_user.created_at
     }
 
